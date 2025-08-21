@@ -23,7 +23,7 @@ Built with **Node.js** and **discord.js v14**.
    cd All-In-One
 
 2. Install dependencies:
-
+   ```bash
 npm i aio-discord-bot
 
 3. Create a file named .env in the root directory and add your credentials (see below 👇).
