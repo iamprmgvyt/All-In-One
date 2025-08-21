@@ -1,12 +1,30 @@
 {
   "name": "aio-discord-bot",
   "version": "1.0.0",
-  "description": "All-in-one Discord bot with manage commands and SerpAPI search",
+  "description": "All-in-one Discord bot with moderation, economy, games, utilities, and SerpAPI search.",
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
     "start": "node index.js"
   },
+  "keywords": [
+    "discord",
+    "bot",
+    "all-in-one",
+    "aio",
+    "moderation",
+    "economy",
+    "games",
+    "serpapi"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iamprmgvyt/All-In-One.git"
+  },
+  "bugs": {
+    "url": "https://github.com/iamprmgvyt/All-In-One/issues"
+  },
+  "homepage": "https://github.com/iamprmgvyt/All-In-One#readme",
   "author": "prmgvyt",
   "license": "MIT",
   "dependencies": {
@@ -17,6 +35,9 @@
     "humanize-number": "^0.0.2",
     "ordinal": "^1.0.0",
     "moment": "^2.30.1",
-    "common-tags": "^1.8.0"  
+    "common-tags": "^1.8.0"
+  },
+  "engines": {
+    "node": ">=16.9.0"
   }
 }
