@@ -1,6 +1,6 @@
 # All In One 🌏
 
-A multipurpose Discord bot with slash commands, ticket system, domain checker, and more.  
+A multipurpose Discord bot with slash commands, ticket system, and more.  
 Built with **Node.js** and **discord.js v14**.
 
 ---
@@ -67,7 +67,7 @@ SERP_API_KEY=your-serp-api-key
 
 Explanation
 
-TOKEN → Your bot token from Discord Developer Portal.
+TOKEN → Your bot token from [Discord Developer Portal]{https://discord.com/developers/applications}
 
 CLIENT_ID → Your bot’s client ID.
 
@@ -89,7 +89,7 @@ SERP_API_KEY → API key for Search/Domain Checker commands.
 
 /userinfo → Show information about a user.
 
-/bot → Show bot info + GitHub repo.
+/botinfo → Show bot info
 
 /ticket → Create and manage support tickets.
 
