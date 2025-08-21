@@ -24,7 +24,7 @@ Built with **Node.js** and **discord.js v14**.
 
 2. Install dependencies:
    ```bash
-npm i aio-discord-bot
+   npm i aio-discord-bot
 
 3. Create a file named .env in the root directory and add your credentials (see below 👇).
 
