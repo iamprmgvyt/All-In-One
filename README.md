@@ -7,7 +7,7 @@ Built with **Node.js** and **discord.js v14**.
 
 ## 📌 Features
 - 🎟 Ticket system (support role required)
-- 🌐 Domain Checker(soon)
+- 🌐 Domain Checker
 - 📊 User Info
 - 🤖 Bot Info with GitHub repo
 - 🔧 Moderation & Utilities
