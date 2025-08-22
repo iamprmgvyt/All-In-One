@@ -10,36 +10,49 @@
 // +---+---+---+---+---+---+---+---+
 //
 
-const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
+require('dotenv').config(); // Load environment variables from .env file
+const { SlashCommandBuilder } = require('@discordjs/builders'); // Import SlashCommandBuilder
+const { Client, GatewayIntentBits } = require('discord.js'); // Import Client and GatewayIntentBits
+
+const client = new Client({ intents: [GatewayIntentBits.Guilds] }); // Create a new client instance
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('invite')
-        .setDescription('Get the bot\'s invitation link.'),
+        .setDescription('Send an invite link for the bot'),
     
-    // Giữ nguyên các tham số như cũ để đảm bảo không bị lỗi
-    async execute(interaction, client, lang) {
-        const inviteURL = `https://discord.com/oauth2/authorize?client_id=${client.user.id}&permissions=1477737195574&integration_type=0&scope=bot`;
+    async execute(interaction) {
+        const clientId = process.env.CLIENT_ID; // Retrieve client ID from environment variables
+        const permissions = 40960; // Permissions integer (adjust as needed)
+        const inviteLink = `https://discord.com/oauth2/authorize?client_id=${clientId}&scope=bot&permissions=${permissions}`;
 
-        const embed = new EmbedBuilder()
-            .setColor('#7c3aed')
-            // Tiêu đề song ngữ
-            .setTitle('Invite me')
-            // Mô tả song ngữ với link
-            .setDescription(`
-Click the button below to invite me to your server.
+        const inviteEmbed = {
+            color: 0x0099ff,
+            title: 'Invite Me to Your Server!',
+            description: 'I would love to join your server and assist you with various tasks. Click the link below to invite me!',
+            fields: [
+                {
+                    name: 'Why Invite Me?',
+                    value: 'I can help with moderation, provide fun commands, and enhance your server experience!',
+                },
+                {
+                    name: 'Permissions Needed',
+                    value: 'I require the following permissions to function properly:\n- Send Messages\n- Embed Links\n- Attach Files\n- Manage Messages',
+                },
+                {
+                    name: 'Support',
+                    value: 'If you need help or have questions, feel free to reach out to my developer or check out the support server!',
+                },
+                {
+                    name: 'Invite Link',
+                    value: `[Click here to invite me!](${inviteLink})`, // Added invite link
+                },
+            ],
+            footer: {
+                text: 'Thank you for considering adding me!',
+            },
+        };
 
-[Invite Link](${inviteURL})
-            `)
-            .setThumbnail(client.user.displayAvatarURL({ dynamic: true }))
-            .setImage("https://cdn.discordapp.com/attachments/1246408947708072027/1256597293323256000/invite.png?ex=668158ed&is=6680076d&hm=030c83f567ffdaf0bebb95e50baaec8bb8a8394fa1b7717cc43c3622447f58e3&")
-            // Footer song ngữ
-            .setFooter({ text: 'Thank you for using my bot!' })
-            .setTimestamp();
-        
-        await interaction.reply({ 
-            embeds: [embed],
-            ephemeral: true 
-        });
+        await interaction.reply({ embeds: [inviteEmbed] });
     },
 };
