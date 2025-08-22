@@ -66,7 +66,7 @@ SERP_API_KEY=your-serp-api-key
 
 Explanation
 
-TOKEN → Your bot token from [Discord Developer Portal]{https://discord.com/developers/applications}
+TOKEN → Your bot token from Discord Developer Portal
 
 CLIENT_ID → Your bot’s client ID.
 
