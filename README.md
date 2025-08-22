@@ -64,6 +64,9 @@ MONGODB=your-mongodb-connection-string
 # Search API Key
 SERP_API_KEY=your-serp-api-key
 
+#Google Safe Browsing API KEY
+GOOGLE_SAFE_BROWSING_KEY=your-api-key
+
 Explanation
 
 TOKEN → Your bot token from Discord Developer Portal
@@ -78,8 +81,9 @@ SUPPORT_ROLE_ID → The role ID allowed to claim tickets.
 
 MONGODB → Connection string for MongoDB (if you use database features).
 
-SERP_API_KEY → API key for Search/Domain Checker commands.
+SERP_API_KEY → API key for Search commands.
 
+GOOGLE_SAFE_BROWSING_KEY → API Key for /doamin command
 
 
 ---
