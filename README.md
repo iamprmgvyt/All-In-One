@@ -92,7 +92,7 @@ SERP_API_KEY → API key for Search/Domain Checker commands.
 
 /ticket → Create and manage support tickets.
 
-/domain → Check if a domain is available(soon)
+/domain → Check if a domain is available
 
 
 
