@@ -64,10 +64,10 @@ MONGODB=your-mongodb-connection-string
 # Search API Key
 SERP_API_KEY=your-serp-api-key
 
-#Google Safe Browsing API KEY
+# Google Safe Browsing API KEY
 GOOGLE_SAFE_BROWSING_KEY=your-api-key
 
-Explanation
+# Explanation
 
 TOKEN → Your bot token from Discord Developer Portal
 
