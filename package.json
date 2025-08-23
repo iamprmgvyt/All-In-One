@@ -1,6 +1,6 @@
 {
   "name": "aio-discord-bot",
-  "version": "1.0.1.1",
+  "version": "1.0.2",
   "description": "All-in-one Discord bot with moderation, economy, games, utilities, and SerpAPI search.",
   "main": "index.js",
   "type": "commonjs",
