@@ -17,7 +17,7 @@ module.exports = {
         .setDescription('📝 Show current bot version'),
 
     async execute(interaction) {
-        const version = '1.0.2'; // <-- Set your bot version here
+        const version = '1.0.3'; // <-- Set your bot version here
         await interaction.reply(`📝 Current bot version: **${version}**`);
     }
 };
