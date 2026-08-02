@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIO Bot v3.0 | Self-Hosted Glassmorphism Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: radial-gradient(circle at top left, #0f172a, #020617);
+      color: #f8fafc;
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      padding: 30px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .brand-logo {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #6366f1, #ec4899);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 22px;
+      box-shadow: 0 0 20px rgba(236, 72, 153, 0.4);
+    }
+    .brand-title h1 {
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #38bdf8, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-title p {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    .status-pill {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid #10b981;
+      color: #10b981;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #10b981;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 24px;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+    .card-title {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .card-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 5px;
+    }
+    .card-sub {
+      font-size: 12px;
+      color: #38bdf8;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #6366f1, #ec4899);
+      transition: width 0.4s ease;
+    }
+
+    .terminal-section {
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 24px;
+    }
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .terminal-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #38bdf8;
+    }
+    .terminal-box {
+      background: #020617;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 16px;
+      height: 320px;
+      overflow-y: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+    .log-line {
+      margin-bottom: 6px;
+      line-height: 1.5;
+    }
+    .log-info { color: #38bdf8; }
+    .log-warn { color: #f59e0b; }
+    .log-error { color: #ef4444; }
+    .log-security { color: #ec4899; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">AIO</div>
+      <div class="brand-title">
+        <h1>All-In-One Framework v3.0</h1>
+        <p>Made by prmgvyt | Local Canvas, Local AI & Telemetry Engine</p>
+      </div>
+    </div>
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      SYSTEM ONLINE
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">Servers Connected</div>
+      <div class="card-value" id="val-servers">--</div>
+      <div class="card-sub" id="val-users">-- users total</div>
+    </div>
+    <div class="card">
+      <div class="card-title">WebSocket Ping</div>
+      <div class="card-value" id="val-ping">-- ms</div>
+      <div class="card-sub">Optimal latency</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Active Support Tickets</div>
+      <div class="card-value" id="val-tickets">--</div>
+      <div class="card-sub">Interactive channels</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Active Giveaways</div>
+      <div class="card-value" id="val-giveaways">--</div>
+      <div class="card-sub">Real-time countdowns</div>
+    </div>
+    <div class="card">
+      <div class="card-title">RAM Utilization</div>
+      <div class="card-value" id="val-ram">-- MB</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-ram"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">CPU Load</div>
+      <div class="card-value" id="val-cpu">-- %</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-cpu"></div></div>
+    </div>
+  </div>
+
+  <div class="terminal-section">
+    <div class="terminal-header">
+      <div class="terminal-title">🖥️ LIVE TELEMETRY & LOG TERMINAL</div>
+      <span style="font-size:12px; color:#64748b;">WebSocket Stream</span>
+    </div>
+    <div class="terminal-box" id="terminal">
+      <div class="log-line log-info">[SYSTEM]: Initializing dashboard client connection...</div>
+    </div>
+  </div>
+
+  <script>
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/stats');
+        const data = await res.json();
+
+        document.getElementById('val-servers').innerText = data.serverCount;
+        document.getElementById('val-users').innerText = `${data.userCount} users total`;
+        document.getElementById('val-ping').innerText = `${data.ping} ms`;
+        document.getElementById('val-tickets').innerText = data.activeTickets;
+        document.getElementById('val-giveaways').innerText = data.activeGiveaways;
+        document.getElementById('val-ram').innerText = `${data.memory.usedMB} MB`;
+        document.getElementById('val-cpu').innerText = `${data.cpuLoad}%`;
+
+        document.getElementById('bar-ram').style.width = `${data.memory.percent}%`;
+        document.getElementById('bar-cpu').style.width = `${Math.min(data.cpuLoad, 100)}%`;
+      } catch (e) {
+        console.error('Failed to fetch stats:', e);
+      }
+    }
+
+    setInterval(fetchStats, 3000);
+    fetchStats();
+
+    // WebSocket Log Streamer
+    const ws = new WebSocket(`ws://${location.host}`);
+    const terminal = document.getElementById('terminal');
+
+    ws.onmessage = (event) => {
+      try {
+        const log = JSON.parse(event.data);
+        const line = document.createElement('div');
+        line.className = `log-line log-${log.level || 'info'}`;
+        line.innerText = log.message;
+        terminal.appendChild(line);
+        terminal.scrollTop = terminal.scrollHeight;
+      } catch (e) {
+        const line = document.createElement('div');
+        line.className = 'log-line log-info';
+        line.innerText = event.data;
+        terminal.appendChild(line);
+      }
+    };
+  </script>
+</body>
+</html>

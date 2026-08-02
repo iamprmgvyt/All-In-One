@@ -1,0 +1,44 @@
+{
+  "botName": "All-In-One (AIO) Framework",
+  "version": "1.1.0",
+  "author": "prmgvyt",
+  "defaultPrefix": "!",
+  "defaultLanguage": "en",
+  "dashboardPort": 3000,
+  "lavalinkNodes": [
+    {
+      "name": "Primary-Node",
+      "host": "localhost",
+      "port": 2333,
+      "password": "youshallnotpass",
+      "secure": false
+    },
+    {
+      "name": "Backup-Node",
+      "host": "lavalink.example.com",
+      "port": 443,
+      "password": "youshallnotpass",
+      "secure": true
+    }
+  ],
+  "security": {
+    "antiNuke": {
+      "enabled": true,
+      "maxChannelDelete": 3,
+      "maxRoleDelete": 3,
+      "maxBan": 3,
+      "timeWindowMs": 10000
+    },
+    "autoMod": {
+      "enabled": true,
+      "maxCapsPercent": 70,
+      "blockInvites": true,
+      "dangerousExtensions": [".exe", ".bat", ".scr", ".cmd", ".vbs", ".ps1"]
+    },
+    "captcha": {
+      "timeoutSeconds": 180,
+      "maxRetries": 3,
+      "quarantineRoleName": "Unverified-Quarantine"
+    }
+  }
+}

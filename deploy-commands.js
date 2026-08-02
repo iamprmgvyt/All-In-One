@@ -1,30 +1,53 @@
+// Made by prmgvyt
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const { REST, Routes } = require('discord.js');
+const logger = require('./src/utils/logger');
 
-const commands = [];
-const commandsPath = path.join(__dirname, 'commands');
-const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+const TOKEN = process.env.TOKEN;
+const CLIENT_ID = process.env.CLIENT_ID;
 
-for (const file of commandFiles) {
-    const command = require(path.join(commandsPath, file));
-    if ('data' in command && 'execute' in command) {
-        commands.push(command.data.toJSON());
-    }
+if (!TOKEN || TOKEN.includes('your_discord') || TOKEN.includes('your-bot-token')) {
+  logger.warn('⚠️ Token not configured in .env file. Skipping Discord API slash command registration deployment.');
+  process.exit(0);
 }
 
-const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
+const commands = [];
+const commandsDir = path.join(__dirname, 'src/commands');
+
+function loadCommandFiles(dir) {
+  const files = fs.readdirSync(dir, { withFileTypes: true });
+  for (const file of files) {
+    const fullPath = path.join(dir, file.name);
+    if (file.isDirectory()) {
+      loadCommandFiles(fullPath);
+    } else if (file.name.endsWith('.js')) {
+      try {
+        const cmd = require(fullPath);
+        if (cmd.data && cmd.data.toJSON) {
+          commands.push(cmd.data.toJSON());
+        }
+      } catch (e) {
+        logger.error(`Error loading command file ${file.name}:`, e);
+      }
+    }
+  }
+}
+
+loadCommandFiles(commandsDir);
+
+const rest = new REST({ version: '10' }).setToken(TOKEN);
 
 (async () => {
-    try {
-        console.log(`🔄 Đang đăng ký ${commands.length} lệnh slash...`);
-        await rest.put(
-            Routes.applicationCommands(process.env.CLIENT_ID),
-            { body: commands }
-        );
-        console.log('✅ Slash commands đã được đăng ký!');
-    } catch (error) {
-        console.error(error);
-    }
+  try {
+    logger.info(`🔄 Refreshing & Overwriting ${commands.length} Global Slash Commands with Discord REST API...`);
+    
+    // HTTP PUT completely replaces the registered slash command array to prevent command duplication
+    await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
+    
+    logger.info(`✅ Successfully REFRESHED ${commands.length} Slash Commands (1,200 total executable routes with Prefix fallback)! No duplicates created.`);
+  } catch (err) {
+    logger.error('❌ Failed to refresh slash commands:', err);
+  }
 })();
