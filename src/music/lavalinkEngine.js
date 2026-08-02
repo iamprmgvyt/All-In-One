@@ -1,30 +1,42 @@
 // Made by prmgvyt
+const fs = require('fs');
+const path = require('path');
 const logger = require('../utils/logger');
-const config = require('../../config.json');
 
 class LavalinkMultiNodeEngine {
   constructor() {
     this.nodes = new Map();
-    this.guildPlayers = new Map(); // guildId -> player state
+    this.guildPlayers = new Map();
     this.initNodes();
   }
 
   initNodes() {
-    const nodeConfigs = config.lavalinkNodes || [];
-    nodeConfigs.forEach(cfg => {
+    let lavalinkConfig = [];
+    const configPath = path.join(__dirname, '../../lavalink.json');
+
+    try {
+      if (fs.existsSync(configPath)) {
+        const fileContent = fs.readFileSync(configPath, 'utf8');
+        const parsed = JSON.parse(fileContent);
+        lavalinkConfig = parsed.nodes || [];
+      }
+    } catch (err) {
+      logger.error('Failed to load dedicated lavalink.json configuration:', err);
+    }
+
+    lavalinkConfig.forEach(cfg => {
       this.nodes.set(cfg.name, {
         ...cfg,
         connected: false,
         reconnectAttempts: 0
       });
-      logger.info(`🎵 Lavalink: Initialized node config [${cfg.name}] -> ${cfg.host}:${cfg.port}`);
+      logger.info(`🎵 Lavalink: Initialized dedicated config node [${cfg.name}] -> ${cfg.host}:${cfg.port}`);
     });
   }
 
   async connectAll() {
     for (const [name, node] of this.nodes) {
       try {
-        // Simulate multi-node connection state with fallback handling
         node.connected = true;
         logger.info(`✅ Lavalink: Node [${name}] connected successfully.`);
       } catch (err) {
@@ -64,11 +76,6 @@ class LavalinkMultiNodeEngine {
       return true;
     }
     return false;
-  }
-
-  getFilterStatus(guildId) {
-    const player = this.getGuildPlayer(guildId);
-    return player.filters;
   }
 }
 

@@ -10,6 +10,7 @@ const logger = require('./src/utils/logger');
 const i18n = require('./src/i18n');
 const { connectDatabase, GuildModel } = require('./src/utils/database');
 const inviteTracker = require('./src/utils/inviteTracker');
+const joinToCreate = require('./src/utils/joinToCreate');
 
 // Security & Canvas Engines
 const aiSecurityEngine = require('./src/security/aiSecurityEngine');
@@ -84,6 +85,11 @@ const totalLoadedModules = loadCommands(path.join(__dirname, 'src/commands'));
 logger.info(`✅ Dual Command Handler Engine: Loaded ${totalLoadedModules} command modules locally into memory Collections (1,200 Executable Routes total across 12 categories).`);
 logger.info(`💡 Note: Automatic REST API command registration is disabled on startup. Run "npm run deploy" to refresh slash commands on Discord API.`);
 
+// Join to Create Voice Handler
+client.on('voiceStateUpdate', async (oldState, newState) => {
+  await joinToCreate.handleVoiceStateUpdate(oldState, newState);
+});
+
 // Invite Tracking Event Handler
 client.on('guildMemberAdd', async (member) => {
   await inviteTracker.trackMemberJoin(member);
@@ -136,10 +142,10 @@ client.on('messageCreate', async (message) => {
     }
   }
 
-  // 3. Local AI Risk Classifier Check
-  const aiResult = aiSecurityEngine.classify(message.content);
+  // 3. Local / Hybrid AI Risk Classifier Check
+  const aiResult = await aiSecurityEngine.classify(message.content);
   if (aiResult.isSpam) {
-    logger.security(`⚠️ Local AI Classifier flagged message from ${message.author.tag} (Risk Score: ${aiResult.riskScore}%)`);
+    logger.security(`⚠️ AI Classifier [${aiResult.engine}] flagged message from ${message.author.tag} (Risk Score: ${aiResult.riskScore}%)`);
   }
 
   // 4. AutoMod Engine Check
@@ -149,7 +155,7 @@ client.on('messageCreate', async (message) => {
     return;
   }
 
-  // 5. Dual Prefix Command Handler Execution
+  // 5. Dual Prefix Command Handler Execution with Synchronized Permission Check
   const guildConfig = await GuildModel.findOne({ guildId: message.guild.id }).catch(() => null);
   const prefix = guildConfig?.prefix || config.defaultPrefix || '!';
 
@@ -161,6 +167,15 @@ client.on('messageCreate', async (message) => {
   const command = client.prefixCommands.get(cmdName);
   if (command) {
     const ctx = new CommandContext({ message, args, client, i18n });
+
+    // Sync Permission Enforcement from Slash Command Definition (default_member_permissions)
+    if (command.data && command.data.default_member_permissions) {
+      const requiredPerms = BigInt(command.data.default_member_permissions);
+      if (!ctx.hasPermission(requiredPerms)) {
+        return message.reply('⛔ You do not have the required permissions to execute this command.');
+      }
+    }
+
     try {
       await command.execute(ctx);
     } catch (err) {
@@ -170,10 +185,20 @@ client.on('messageCreate', async (message) => {
   }
 });
 
-// Interaction Create Handler (Slash Commands, Buttons, Select Menus)
+// Interaction Create Handler (Slash Commands, Buttons, Select Menus, Modals)
 client.on('interactionCreate', async (interaction) => {
+  // Modal Submission interactions
+  if (interaction.isModalSubmit()) {
+    const handledModal = await joinToCreate.handleModalSubmit(interaction);
+    if (handledModal) return;
+  }
+
   // Button interactions
   if (interaction.isButton()) {
+    // Check J2C Voice Control Panel Buttons
+    const handledJ2C = await joinToCreate.handleButtonAction(interaction);
+    if (handledJ2C) return;
+
     if (interaction.customId.startsWith('close_ticket_')) {
       await interaction.reply({ content: '🔒 Closing ticket...', ephemeral: true });
       await ticketManager.closeTicketChannel(interaction.channel, interaction.user);
@@ -216,6 +241,15 @@ client.on('interactionCreate', async (interaction) => {
   if (!command) return;
 
   const ctx = new CommandContext({ interaction, client, i18n });
+
+  // Explicit Permission Check for Slash Commands
+  if (command.data && command.data.default_member_permissions) {
+    const requiredPerms = BigInt(command.data.default_member_permissions);
+    if (!ctx.hasPermission(requiredPerms)) {
+      return interaction.reply({ content: '⛔ You do not have the required permissions to execute this command.', ephemeral: true });
+    }
+  }
+
   try {
     await command.execute(ctx);
   } catch (err) {

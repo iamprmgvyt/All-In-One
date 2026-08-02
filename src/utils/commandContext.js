@@ -1,4 +1,6 @@
 // Made by prmgvyt
+const { PermissionsBitField } = require('discord.js');
+
 class CommandContext {
   constructor({ interaction = null, message = null, args = [], client, i18n }) {
     this.interaction = interaction;
@@ -12,6 +14,11 @@ class CommandContext {
     this.channel = interaction ? interaction.channel : message.channel;
     this.user = interaction ? interaction.user : message.author;
     this.member = interaction ? interaction.member : message.member;
+  }
+
+  hasPermission(permission) {
+    if (!this.member) return false;
+    return this.member.permissions.has(permission);
   }
 
   getOption(name) {

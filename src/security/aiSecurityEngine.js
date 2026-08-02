@@ -1,9 +1,19 @@
 // Made by prmgvyt
+const fetch = require('node-fetch');
+const logger = require('../utils/logger');
+
 /**
- * Local AI Risk Classifier using Naive Bayes + TF-IDF (100% Local, 0% Cloud AI Dependent)
+ * Hybrid AI Security Engine
+ * - Groq AI API (`GROQ_API_KEY`)
+ * - NVIDIA AI NIM API (`NVIDIA_API_KEY`)
+ * - Self-trained Local Naive Bayes + TF-IDF Engine (Fallback)
  */
-class LocalAISecurityEngine {
+class HybridAISecurityEngine {
   constructor() {
+    this.groqApiKey = process.env.GROQ_API_KEY || null;
+    this.nvidiaApiKey = process.env.NVIDIA_API_KEY || null;
+
+    // Local Naive Bayes + TF-IDF Dataset
     this.vocabulary = new Set();
     this.idfMap = new Map();
     this.spamWordCounts = new Map();
@@ -30,7 +40,8 @@ class LocalAISecurityEngine {
       "claim $100 steam gift card instantly click here fast trade offer selfbot raid",
       "boost server free nitro generator 2026 working no survey download execute script",
       "urgent verify account click link or get banned discord staff announcement admin",
-      "free robux generator download exe file run as administrator free crypto airdrop"
+      "free robux generator download exe file run as administrator free crypto airdrop",
+      "tải hack game miễn phí link drive virus scam crack full chìa khóa"
     ];
 
     const hamDataset = [
@@ -39,7 +50,7 @@ class LocalAISecurityEngine {
       "let us play some music together in the voice channel",
       "what time is the gaming tournament scheduled for tonight?",
       "thanks for sharing the design guidelines document",
-      "please check the update announcement in news channel"
+      "chào mọi người hôm nay cùng chơi game nhé"
     ];
 
     spamDataset.forEach(text => this.train(text, true));
@@ -72,9 +83,9 @@ class LocalAISecurityEngine {
     });
   }
 
-  classify(text) {
+  classifyLocal(text) {
     const tokens = this.tokenize(text);
-    if (tokens.length === 0) return { isSpam: false, riskScore: 0, flags: [] };
+    if (tokens.length === 0) return { isSpam: false, riskScore: 0, flags: [], engine: 'LOCAL_BAYES' };
 
     let logSpamProb = Math.log(this.totalSpamDocs / (this.totalSpamDocs + this.totalHamDocs));
     let logHamProb = Math.log(this.totalHamDocs / (this.totalSpamDocs + this.totalHamDocs));
@@ -85,7 +96,6 @@ class LocalAISecurityEngine {
 
     tokens.forEach(token => {
       const idf = this.idfMap.get(token) || 1.0;
-
       const spamCount = this.spamWordCounts.get(token) || 0;
       const hamCount = this.hamWordCounts.get(token) || 0;
 
@@ -104,9 +114,105 @@ class LocalAISecurityEngine {
     return {
       isSpam: riskScore >= 70,
       riskScore,
-      flags: [...new Set(flags)]
+      flags: [...new Set(flags)],
+      engine: 'LOCAL_BAYES'
     };
+  }
+
+  async classifyGroqAI(text) {
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.groqApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a Discord AI AutoMod Security Inspector. Analyze text for spam, phishing, scam links, hate speech, or dangerous material. Respond strictly in JSON: {"isSpam": boolean, "riskScore": number (0-100), "reason": "short explanation"}'
+            },
+            { role: 'user', content: text }
+          ],
+          temperature: 0.1
+        }),
+        timeout: 4000
+      });
+
+      if (response.ok) {
+        const json = await response.json();
+        const contentStr = json.choices[0]?.message?.content || '{}';
+        const parsed = JSON.parse(contentStr.substring(contentStr.indexOf('{'), contentStr.lastIndexOf('}') + 1));
+        return {
+          isSpam: parsed.isSpam || parsed.riskScore >= 70,
+          riskScore: parsed.riskScore || (parsed.isSpam ? 90 : 10),
+          flags: [parsed.reason || 'Groq AI Moderation Flag'],
+          engine: 'GROQ_AI'
+        };
+      }
+    } catch (e) {
+      logger.warn(`Groq AI request failed, falling back to local engine: ${e.message}`);
+    }
+    return null;
+  }
+
+  async classifyNvidiaAI(text) {
+    try {
+      const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.nvidiaApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'meta/llama-3.1-70b-instruct',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an AI Safety AutoMod Inspector. Respond strictly in JSON: {"isSpam": boolean, "riskScore": number (0-100), "reason": "explanation"}'
+            },
+            { role: 'user', content: text }
+          ],
+          temperature: 0.1
+        }),
+        timeout: 4000
+      });
+
+      if (response.ok) {
+        const json = await response.json();
+        const contentStr = json.choices[0]?.message?.content || '{}';
+        const parsed = JSON.parse(contentStr.substring(contentStr.indexOf('{'), contentStr.lastIndexOf('}') + 1));
+        return {
+          isSpam: parsed.isSpam || parsed.riskScore >= 70,
+          riskScore: parsed.riskScore || (parsed.isSpam ? 90 : 10),
+          flags: [parsed.reason || 'NVIDIA AI NIM Flag'],
+          engine: 'NVIDIA_AI'
+        };
+      }
+    } catch (e) {
+      logger.warn(`NVIDIA AI NIM request failed, falling back to local engine: ${e.message}`);
+    }
+    return null;
+  }
+
+  async classify(text) {
+    // 1. Try Groq AI API if configured
+    if (this.groqApiKey && !this.groqApiKey.includes('your_')) {
+      const groqRes = await this.classifyGroqAI(text);
+      if (groqRes) return groqRes;
+    }
+
+    // 2. Try NVIDIA AI NIM API if configured
+    if (this.nvidiaApiKey && !this.nvidiaApiKey.includes('your_')) {
+      const nvidiaRes = await this.classifyNvidiaAI(text);
+      if (nvidiaRes) return nvidiaRes;
+    }
+
+    // 3. Fallback to 100% Self-Trained Local Naive Bayes + TF-IDF Engine
+    return this.classifyLocal(text);
   }
 }
 
-module.exports = new LocalAISecurityEngine();
+module.exports = new HybridAISecurityEngine();

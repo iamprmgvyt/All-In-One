@@ -5,22 +5,6 @@
   "defaultPrefix": "!",
   "defaultLanguage": "en",
   "dashboardPort": 3000,
-  "lavalinkNodes": [
-    {
-      "name": "Primary-Node",
-      "host": "localhost",
-      "port": 2333,
-      "password": "youshallnotpass",
-      "secure": false
-    },
-    {
-      "name": "Backup-Node",
-      "host": "lavalink.example.com",
-      "port": 443,
-      "password": "youshallnotpass",
-      "secure": true
-    }
-  ],
   "security": {
     "antiNuke": {
       "enabled": true,
