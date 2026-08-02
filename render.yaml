@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: aio-discord-bot-v110
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: 18.17.0
+      - key: PORT
+        value: 10000

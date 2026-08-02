@@ -1,6 +1,6 @@
 // Made by prmgvyt
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const config = require('../../../config.json');
+const config = require('../../config.json');
 
 module.exports = {
   category: 'Utility',
@@ -39,7 +39,7 @@ module.exports = {
       .setTitle('⚡ ALL-IN-ONE (AIO) DISCORD BOT FRAMEWORK v1.1.0')
       .setDescription(
         `👑 **Author**: \`prmgvyt\` | 🚀 **Framework**: \`Discord.js v14\`\n` +
-        `📦 **Total Modules**: **${totalCommandsCount}** (Mapped into **1,200 Executable Routes** via Slash `/` & Prefix `!`)\n\n` +
+        `📦 **Total Modules**: **${totalCommandsCount}** (Mapped into **1,200 Executable Routes** via Slash \`/\` & Prefix \`!\`)\n\n` +
         `📌 *Select a category from the dropdown menu below to view the full command suite!*`
       )
       .setFooter({ text: 'All-In-One Framework | Made by prmgvyt', iconURL: ctx.client.user.displayAvatarURL() })

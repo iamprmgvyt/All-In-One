@@ -7,13 +7,20 @@ class GiveawayManager {
     this.activeGiveaways = new Map(); // messageId -> giveawayData
   }
 
-  async startGiveaway(channel, prize, durationMinutes, winnersCount = 1, hostUser) {
+  async startGiveaway(channel, prize, durationMinutes, winnersCount = 1, hostUser, requiredRoleId = null) {
     const expiresAt = Date.now() + durationMinutes * 60 * 1000;
+
+    const roleRequirementText = requiredRoleId ? `\n**Role Required**: <@&${requiredRoleId}>` : '';
 
     const embed = new EmbedBuilder()
       .setColor('#ec4899')
       .setTitle(`🎁 GIVEAWAY: ${prize}`)
-      .setDescription(`React with 🎉 to enter!\n\n**Duration**: ${durationMinutes} minutes\n**Winners**: ${winnersCount}\n**Hosted By**: ${hostUser}`)
+      .setDescription(
+        `React with 🎉 to enter!\n\n` +
+        `**Duration**: ${durationMinutes} minutes\n` +
+        `**Winners**: ${winnersCount}\n` +
+        `**Hosted By**: ${hostUser}${roleRequirementText}`
+      )
       .setFooter({ text: 'AIO Giveaway Manager | Made by prmgvyt' })
       .setTimestamp(expiresAt);
 
@@ -27,6 +34,8 @@ class GiveawayManager {
       prize,
       winnersCount,
       expiresAt,
+      requiredRoleId,
+      paused: false,
       ended: false
     };
 
@@ -55,7 +64,20 @@ class GiveawayManager {
       const reaction = msg.reactions.cache.get('🎉');
       const users = reaction ? await reaction.users.fetch() : null;
 
-      const validUsers = users ? users.filter(u => !u.bot).map(u => u) : [];
+      let validUsers = users ? users.filter(u => !u.bot).map(u => u) : [];
+
+      // Check role requirement if configured
+      if (giveaway.requiredRoleId) {
+        const guild = channel.guild;
+        const filteredUsers = [];
+        for (const user of validUsers) {
+          const member = await guild.members.fetch(user.id).catch(() => null);
+          if (member && member.roles.cache.has(giveaway.requiredRoleId)) {
+            filteredUsers.push(user);
+          }
+        }
+        validUsers = filteredUsers;
+      }
 
       if (validUsers.length === 0) {
         const noWinnerEmbed = new EmbedBuilder()
@@ -89,6 +111,32 @@ class GiveawayManager {
       return winners;
     } catch (err) {
       logger.error(`Error ending giveaway ${messageId}:`, err);
+      return null;
+    }
+  }
+
+  async rerollGiveaway(messageId, client) {
+    const giveaway = this.activeGiveaways.get(messageId);
+    if (!giveaway) return null;
+
+    try {
+      const channel = await client.channels.fetch(giveaway.channelId).catch(() => null);
+      if (!channel) return null;
+
+      const msg = await channel.messages.fetch(messageId).catch(() => null);
+      if (!msg) return null;
+
+      const reaction = msg.reactions.cache.get('🎉');
+      const users = reaction ? await reaction.users.fetch() : null;
+      const validUsers = users ? users.filter(u => !u.bot).map(u => u) : [];
+
+      if (validUsers.length === 0) return null;
+
+      const winner = validUsers[Math.floor(Math.random() * validUsers.length)];
+      await channel.send(`🎉 New Reroll Winner for **${giveaway.prize}**: ${winner}! Congratulations!`);
+      return winner;
+    } catch (err) {
+      logger.error(`Error rerolling giveaway ${messageId}:`, err);
       return null;
     }
   }

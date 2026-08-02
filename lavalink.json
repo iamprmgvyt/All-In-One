@@ -2,8 +2,8 @@
   "nodes": [
     {
       "name": "Primary-Lavalink-Node",
-      "host": "localhost",
-      "port": 2333,
+      "host": "public-node-by.mouse-ex.xyz",
+      "port": 26463,
       "password": "youshallnotpass",
       "secure": false,
       "retryAmount": 5,
@@ -11,9 +11,9 @@
     },
     {
       "name": "Backup-Lavalink-Node",
-      "host": "lavalink.example.com",
+      "host": "lavalinkv4.serenetia.com",
       "port": 443,
-      "password": "youshallnotpass",
+      "password": "https://dsc.gg/ajidevserver",
       "secure": true,
       "retryAmount": 5,
       "retryDelay": 3000

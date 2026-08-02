@@ -22,6 +22,7 @@ const captchaEngine = require('./src/security/captchaEngine');
 // Music, Tickets & Dashboard
 const lavalinkEngine = require('./src/music/lavalinkEngine');
 const ticketManager = require('./src/utils/ticketManager');
+const giveawayManager = require('./src/utils/giveawayManager');
 const { startDashboardServer } = require('./src/dashboard/server');
 
 // Command Context
@@ -199,6 +200,22 @@ client.on('interactionCreate', async (interaction) => {
     const handledJ2C = await joinToCreate.handleButtonAction(interaction);
     if (handledJ2C) return;
 
+    if (interaction.customId === 'ticket_create_general') {
+      await interaction.reply({ content: '🎫 Creating ticket channel...', ephemeral: true });
+      await ticketManager.createTicketChannel(interaction.guild, interaction.user, 'General Support', 'Support');
+      return;
+    }
+
+    if (interaction.customId.startsWith('claim_ticket_')) {
+      const res = await ticketManager.claimTicket(interaction.channel, interaction.user);
+      if (res.success) {
+        await interaction.reply({ content: '✅ Ticket claimed successfully!', ephemeral: true });
+      } else {
+        await interaction.reply({ content: '❌ Ticket already claimed or invalid.', ephemeral: true });
+      }
+      return;
+    }
+
     if (interaction.customId.startsWith('close_ticket_')) {
       await interaction.reply({ content: '🔒 Closing ticket...', ephemeral: true });
       await ticketManager.closeTicketChannel(interaction.channel, interaction.user);
@@ -208,6 +225,21 @@ client.on('interactionCreate', async (interaction) => {
 
   // String Select Menu interactions
   if (interaction.isStringSelectMenu()) {
+    if (interaction.customId === 'ticket_category_select') {
+      const selectedVal = interaction.values[0];
+      const categoryMap = {
+        ticket_cat_support: { topic: 'General Support', category: 'Support' },
+        ticket_cat_billing: { topic: 'Billing & Payments', category: 'Billing' },
+        ticket_cat_bug: { topic: 'Bug Report', category: 'Bug' },
+        ticket_cat_report: { topic: 'Member Violation Report', category: 'Report' }
+      };
+
+      const meta = categoryMap[selectedVal] || { topic: 'Support Inquiry', category: 'Support' };
+      await interaction.reply({ content: `🎫 Creating ticket channel for **${meta.category}**...`, ephemeral: true });
+      await ticketManager.createTicketChannel(interaction.guild, interaction.user, meta.topic, meta.category);
+      return;
+    }
+
     if (interaction.customId === 'help_category_select') {
       const selectedValue = interaction.values[0]; // e.g. "help_cat_moderation"
       const selectedCatSlug = selectedValue.replace('help_cat_', '');
