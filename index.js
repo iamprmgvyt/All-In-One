@@ -2,7 +2,7 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const { Client, Collection, GatewayIntentBits, ActivityType } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, ActivityType, EmbedBuilder } = require('discord.js');
 
 // Core Utilities & Config
 const config = require('./config.json');
@@ -132,13 +132,28 @@ client.on('messageCreate', async (message) => {
   if (captchaSession) {
     const result = captchaEngine.verifyAttempt(message.author.id, message.content);
     if (result.success) {
-      message.reply('✅ **CAPTCHA verified successfully!** Welcome to the server.');
+      const embed = new EmbedBuilder()
+        .setColor('#10b981')
+        .setTitle('✅ CAPTCHA Verified')
+        .setDescription('CAPTCHA verified successfully! Welcome to the server.')
+        .setFooter({ text: 'AIO Anti-OCR CAPTCHA Engine | Made by prmgvyt' });
+      message.reply({ embeds: [embed] });
       return;
     } else if (result.reason === 'WRONG_ANSWER') {
-      message.reply(`❌ **Incorrect CAPTCHA answer.** Remaining attempts: **${result.remainingRetries}**.`);
+      const embed = new EmbedBuilder()
+        .setColor('#f59e0b')
+        .setTitle('❌ Incorrect Answer')
+        .setDescription(`Incorrect CAPTCHA answer. Remaining attempts: **${result.remainingRetries}**.`)
+        .setFooter({ text: 'AIO Anti-OCR CAPTCHA Engine | Made by prmgvyt' });
+      message.reply({ embeds: [embed] });
       return;
     } else if (result.reason === 'MAX_RETRIES_EXCEEDED' || result.reason === 'EXPIRED') {
-      message.reply('🚨 **CAPTCHA verification failed or timed out.** Quarantine role applied.');
+      const embed = new EmbedBuilder()
+        .setColor('#ef4444')
+        .setTitle('🚨 Verification Failed')
+        .setDescription('CAPTCHA verification failed or timed out. Quarantine role applied.')
+        .setFooter({ text: 'AIO Anti-OCR CAPTCHA Engine | Made by prmgvyt' });
+      message.reply({ embeds: [embed] });
       return;
     }
   }
@@ -173,7 +188,12 @@ client.on('messageCreate', async (message) => {
     if (command.data && command.data.default_member_permissions) {
       const requiredPerms = BigInt(command.data.default_member_permissions);
       if (!ctx.hasPermission(requiredPerms)) {
-        return message.reply('⛔ You do not have the required permissions to execute this command.');
+        const permEmbed = new EmbedBuilder()
+          .setColor('#ef4444')
+          .setTitle('⛔ Permission Denied')
+          .setDescription('You do not have the required permissions to execute this command.')
+          .setFooter({ text: 'AIO Security Engine | Made by prmgvyt' });
+        return message.reply({ embeds: [permEmbed] });
       }
     }
 
@@ -181,7 +201,12 @@ client.on('messageCreate', async (message) => {
       await command.execute(ctx);
     } catch (err) {
       logger.error(`Error executing prefix command ${cmdName}:`, err);
-      message.reply('❌ An error occurred while executing this command.').catch(() => {});
+      const errEmbed = new EmbedBuilder()
+        .setColor('#ef4444')
+        .setTitle('❌ Execution Error')
+        .setDescription('An error occurred while executing this command.')
+        .setFooter({ text: 'AIO Framework | Made by prmgvyt' });
+      message.reply({ embeds: [errEmbed] }).catch(() => {});
     }
   }
 });
@@ -201,7 +226,12 @@ client.on('interactionCreate', async (interaction) => {
     if (handledJ2C) return;
 
     if (interaction.customId === 'ticket_create_general') {
-      await interaction.reply({ content: '🎫 Creating ticket channel...', ephemeral: true });
+      const embed = new EmbedBuilder()
+        .setColor('#38bdf8')
+        .setTitle('🎫 Creating Ticket')
+        .setDescription('Creating your support ticket channel...')
+        .setFooter({ text: 'AIO Ticket Suite | Made by prmgvyt' });
+      await interaction.reply({ embeds: [embed], ephemeral: true });
       await ticketManager.createTicketChannel(interaction.guild, interaction.user, 'General Support', 'Support');
       return;
     }
@@ -209,15 +239,30 @@ client.on('interactionCreate', async (interaction) => {
     if (interaction.customId.startsWith('claim_ticket_')) {
       const res = await ticketManager.claimTicket(interaction.channel, interaction.user);
       if (res.success) {
-        await interaction.reply({ content: '✅ Ticket claimed successfully!', ephemeral: true });
+        const embed = new EmbedBuilder()
+          .setColor('#10b981')
+          .setTitle('✅ Ticket Claimed')
+          .setDescription('Ticket claimed successfully!')
+          .setFooter({ text: 'AIO Ticket Suite | Made by prmgvyt' });
+        await interaction.reply({ embeds: [embed], ephemeral: true });
       } else {
-        await interaction.reply({ content: '❌ Ticket already claimed or invalid.', ephemeral: true });
+        const embed = new EmbedBuilder()
+          .setColor('#ef4444')
+          .setTitle('❌ Action Failed')
+          .setDescription('Ticket is already claimed or invalid.')
+          .setFooter({ text: 'AIO Ticket Suite | Made by prmgvyt' });
+        await interaction.reply({ embeds: [embed], ephemeral: true });
       }
       return;
     }
 
     if (interaction.customId.startsWith('close_ticket_')) {
-      await interaction.reply({ content: '🔒 Closing ticket...', ephemeral: true });
+      const embed = new EmbedBuilder()
+        .setColor('#ef4444')
+        .setTitle('🔒 Closing Ticket')
+        .setDescription('Closing ticket and saving transcript...')
+        .setFooter({ text: 'AIO Ticket Suite | Made by prmgvyt' });
+      await interaction.reply({ embeds: [embed], ephemeral: true });
       await ticketManager.closeTicketChannel(interaction.channel, interaction.user);
       return;
     }
@@ -235,7 +280,13 @@ client.on('interactionCreate', async (interaction) => {
       };
 
       const meta = categoryMap[selectedVal] || { topic: 'Support Inquiry', category: 'Support' };
-      await interaction.reply({ content: `🎫 Creating ticket channel for **${meta.category}**...`, ephemeral: true });
+      const embed = new EmbedBuilder()
+        .setColor('#38bdf8')
+        .setTitle(`🎫 Creating ${meta.category} Ticket`)
+        .setDescription(`Setting up your private channel for **${meta.topic}**...`)
+        .setFooter({ text: 'AIO Ticket Suite | Made by prmgvyt' });
+
+      await interaction.reply({ embeds: [embed], ephemeral: true });
       await ticketManager.createTicketChannel(interaction.guild, interaction.user, meta.topic, meta.category);
       return;
     }
@@ -261,7 +312,12 @@ client.on('interactionCreate', async (interaction) => {
         const categoryEmbed = helpCmd.createCategoryEmbed(matchedCat, categoriesMap.get(matchedCat));
         await interaction.update({ embeds: [categoryEmbed] });
       } else {
-        await interaction.reply({ content: '❌ Category not found.', ephemeral: true });
+        const errEmbed = new EmbedBuilder()
+          .setColor('#ef4444')
+          .setTitle('❌ Category Not Found')
+          .setDescription('Selected category module could not be loaded.')
+          .setFooter({ text: 'AIO Framework | Made by prmgvyt' });
+        await interaction.reply({ embeds: [errEmbed], ephemeral: true });
       }
       return;
     }
@@ -278,7 +334,12 @@ client.on('interactionCreate', async (interaction) => {
   if (command.data && command.data.default_member_permissions) {
     const requiredPerms = BigInt(command.data.default_member_permissions);
     if (!ctx.hasPermission(requiredPerms)) {
-      return interaction.reply({ content: '⛔ You do not have the required permissions to execute this command.', ephemeral: true });
+      const permEmbed = new EmbedBuilder()
+        .setColor('#ef4444')
+        .setTitle('⛔ Permission Denied')
+        .setDescription('You do not have the required permissions to execute this command.')
+        .setFooter({ text: 'AIO Security Engine | Made by prmgvyt' });
+      return interaction.reply({ embeds: [permEmbed], ephemeral: true });
     }
   }
 
@@ -287,7 +348,12 @@ client.on('interactionCreate', async (interaction) => {
   } catch (err) {
     logger.error(`Error executing slash command ${interaction.commandName}:`, err);
     if (!interaction.replied && !interaction.deferred) {
-      await interaction.reply({ content: '❌ An error occurred while executing this command.', ephemeral: true });
+      const errEmbed = new EmbedBuilder()
+        .setColor('#ef4444')
+        .setTitle('❌ Execution Error')
+        .setDescription('An error occurred while executing this command.')
+        .setFooter({ text: 'AIO Framework | Made by prmgvyt' });
+      await interaction.reply({ embeds: [errEmbed], ephemeral: true });
     }
   }
 });
